@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Takeoff</title>
+  <link rel="stylesheet" href="taskpane.css">
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Takeoff</h1>
+    <label class="btn primary" for="file">Open drawing</label>
+    <input id="file" type="file" accept=".dxf,.pdf">
+  </header>
+  <p id="file-info" class="file-info"></p>
+
+  <section aria-label="Drawing">
+    <div class="toolbar" role="toolbar" aria-label="Drawing tools">
+      <button class="btn" data-tool="pan" aria-pressed="true" title="Pan, select and edit items (P)">Pan</button>
+      <button class="btn" data-tool="distance" aria-pressed="false" title="Distance (D)">Distance</button>
+      <span class="tool-group"><button class="btn" data-tool="length" aria-pressed="false" title="Length (L)">Length</button><select id="shape-length" aria-label="Length shape"></select></span>
+      <span class="tool-group"><button class="btn" data-tool="area" aria-pressed="false" title="Area (A)">Area</button><select id="shape-area" aria-label="Area shape"></select></span>
+      <span class="tool-group"><button class="btn" data-tool="count" aria-pressed="false" title="Count (C)">Count</button><select id="shape-count" aria-label="Count method"></select></span>
+      <button class="btn" data-tool="pick" aria-pressed="false" title="Pick a shape from the drawing (T)">Pick</button>
+      <button class="btn" data-tool="angle" aria-pressed="false" title="Angle (G)">Angle</button>
+      <button class="btn" data-tool="symbol" aria-pressed="false" title="Find matching symbols (S)">Symbols</button>
+      <button class="btn" data-tool="calibrate" aria-pressed="false" title="Calibrate (K)">Calibrate</button>
+      <button id="fit" class="btn" title="Fit to window (F)">Fit</button>
+    </div>
+
+    <div id="pdf-controls" class="pdf-controls" hidden>
+      <button id="prev-page" class="btn" aria-label="Previous page">&lsaquo;</button>
+      <span id="page-info"></span>
+      <label class="jump">Go to <input id="page-jump" type="number" min="1" step="1"></label>
+      <button id="next-page" class="btn" aria-label="Next page">&rsaquo;</button>
+      <label class="check"><input id="show-bg" type="checkbox" checked> Page image</label>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="plan" aria-label="Drawing preview"></canvas>
+      <p id="empty" class="empty">Open a DXF or PDF file to measure from it.</p>
+    </div>
+
+    <div id="finish-bar" class="bar" hidden>
+      <button id="finish" class="btn primary">Finish</button>
+      <button id="back" class="btn">Undo point</button>
+      <button id="cancel" class="btn">Cancel</button>
+    </div>
+
+    <div id="cal-panel" class="bar" hidden>
+      <label>Real distance <input id="cal-dist" type="number" min="0" step="any"></label>
+      <select id="cal-unit" aria-label="Unit of the real distance">
+        <option value="ft">ft</option><option value="m">m</option><option value="in">in</option>
+        <option value="mm">mm</option><option value="cm">cm</option>
+      </select>
+      <button id="cal-set" class="btn primary">Use distance</button>
+    </div>
+
+    <div id="measure-out" class="box" hidden>
+      <div class="bar">
+        <strong id="measure-text"></strong>
+        <button id="measure-send" class="btn">Send to Excel</button>
+      </div>
+      <div class="bar">
+        <label>Check against a known size <input id="chk-val" type="number" min="0" step="any" placeholder="expected"></label>
+        <select id="chk-unit" aria-label="Unit of the expected size">
+          <option value="ft">ft</option><option value="m">m</option><option value="in">in</option>
+          <option value="mm">mm</option><option value="cm">cm</option>
+        </select>
+        <button id="chk-cal" class="btn">Calibrate from this</button>
+      </div>
+      <p id="chk-out" class="note"></p>
+    </div>
+
+    <div id="symbol-panel" class="box" hidden>
+      <p id="sym-info" class="note"></p>
+      <label class="row">Sensitivity
+        <input id="sym-thresh" type="range" min="50" max="95" step="1" value="75">
+        <output id="sym-thresh-val" for="sym-thresh">75%</output>
+      </label>
+      <div class="bar">
+        <button id="sym-add" class="btn primary" disabled>Add as count</button>
+        <button id="sym-clear" class="btn">Clear</button>
+      </div>
+    </div>
+
+    <div class="opts">
+      <label class="check"><input id="snap" type="checkbox" checked> Snap to drawing points</label>
+      <label class="check"><input id="show-labels" type="checkbox" checked> Show values on the drawing</label>
+    </div>
+  </section>
+
+  <details open>
+    <summary>Scale</summary>
+    <label class="row">Show quantities in
+      <select id="unit">
+        <option value="ft">ft</option><option value="m">m</option><option value="in">in</option>
+        <option value="mm">mm</option><option value="cm">cm</option>
+      </select>
+    </label>
+    <label class="row">Set scale by
+      <select id="method">
+        <option value="preset">Preset paper scale</option>
+        <option value="calibrate">Calibrating two points</option>
+        <option value="factor">Typing a factor</option>
+      </select>
+    </label>
+
+    <div id="m-preset" class="row">
+      <select id="preset" aria-label="Paper scale"></select>
+      <label id="ratio-wrap" hidden>1 : <input id="ratio" type="number" min="0" step="any" value="100"></label>
+    </div>
+    <div id="m-calibrate" class="row" hidden>
+      <button id="cal-start" class="btn">Pick two points</button>
+      <span id="cal-result">Not calibrated yet.</span>
+    </div>
+    <div id="m-factor" class="row" hidden>
+      <label>1 drawing unit = <input id="factor" type="number" min="0" step="any" value="1"></label>
+      <select id="factor-unit" aria-label="Unit of the factor">
+        <option value="ft">ft</option><option value="m">m</option><option value="in">in</option>
+        <option value="mm">mm</option><option value="cm">cm</option>
+      </select>
+    </div>
+
+    <label class="row">Apply to
+      <select id="scope">
+        <option value="page">This page</option>
+        <option value="region">A region on this page</option>
+        <option value="pages">Pages I choose</option>
+        <option value="all">All pages</option>
+      </select>
+    </label>
+    <label id="pages-wrap" class="row" hidden>Pages <input id="pages" type="text" placeholder="1-3, 5"></label>
+    <div class="row"><button id="apply-scale" class="btn primary">Apply scale</button></div>
+    <ul id="rules" aria-label="Scales in use"></ul>
+  </details>
+
+  <details>
+    <summary>Send to Excel: where and how</summary>
+    <label class="row">Quantities go to
+      <select id="dest-mode">
+        <option value="selection">The cell I have selected</option>
+        <option value="fixed">A fixed cell</option>
+      </select>
+    </label>
+    <div id="dest-fixed" class="row" hidden>
+      <input id="dest-addr" type="text" placeholder="Sheet1!C5" aria-label="Fixed cell address">
+      <button id="dest-use" class="btn">Use selected cell</button>
+    </div>
+    <label class="row">After each send, move
+      <select id="dest-advance">
+        <option value="down">down</option><option value="right">right</option><option value="none">nowhere</option>
+      </select>
+    </label>
+    <label class="row">Write
+      <select id="dest-write">
+        <option value="row">Label, quantity and unit</option>
+        <option value="value">Quantity only</option>
+      </select>
+    </label>
+    <fieldset class="cols">
+      <legend>Table columns</legend>
+      <div id="col-picks" class="picks"></div>
+    </fieldset>
+    <label class="row">Tables go
+      <select id="dest-where">
+        <option value="here">At the destination</option>
+        <option value="newsheet">On a new Takeoff sheet</option>
+      </select>
+    </label>
+    <label class="row">Decimals <input id="decimals" type="number" min="0" max="4" step="1" value="2"></label>
+  </details>
+
+  <details open>
+    <summary>Takeoff</summary>
+    <div class="bar">
+      <button id="undo" class="btn" disabled>Undo</button>
+      <button id="redo" class="btn" disabled>Redo</button>
+      <button id="send-takeoff" class="btn primary">Send all to Excel</button>
+    </div>
+    <p id="takeoff-empty" class="note">Measure with Length, Area or Count, or use Symbols, and your items collect here.</p>
+    <ul id="takeoff" aria-label="Takeoff items"></ul>
+    <p id="takeoff-total" class="note"></p>
+    <div class="bar">
+      <button id="update-links" class="btn" hidden>Update linked cells</button>
+      <button id="insert-picture" class="btn">Insert view as picture</button>
+    </div>
+  </details>
+
+  <details>
+    <summary>Drawing layers</summary>
+    <div class="bar">
+      <input id="layer-filter" type="search" placeholder="Filter layers" aria-label="Filter layers">
+      <button id="send-layers" class="btn" hidden>Send all to Excel</button>
+    </div>
+    <p id="layers-empty" class="note">Layers from a DXF, or lines grouped by color from a vector PDF, show up here.</p>
+    <ul id="layers"></ul>
+  </details>
+
+  <p id="status" role="status" aria-live="polite"></p>
+
+  <details>
+    <summary>Shortcuts</summary>
+    <p class="note">P pan · D distance · L length · A area · C count · T pick · G angle · S symbols · K calibrate · F fit<br>
+      Enter finish · Backspace undo point · Esc cancel · Delete remove selected item · Ctrl+Z undo · Ctrl+Y redo<br>
+      Wheel zooms. Right or middle mouse drag pans. Shift locks horizontal or vertical. In Pan mode, click an item to select it, then drag its square handles to adjust it.</p>
+  </details>
+
+  <script src="loader.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Takeoff support</title>
+<style>body{font:16px/1.55 "Segoe UI",system-ui,sans-serif;max-width:640px;margin:40px auto;padding:0 16px;color:#17232b}h1{font-size:24px}h2{font-size:18px;margin-top:28px}kbd{border:1px solid #ccc;border-radius:3px;padding:0 4px}</style></head>
+<body>
+<h1>Takeoff: support</h1>
+<p>Questions, bug reports or feature requests: <a href="mailto:{{SUPPORT_EMAIL}}">{{SUPPORT_EMAIL}}</a>. Please include your Excel version, the file type (DXF or PDF) and, if you can share it, the file.</p>
+<h2>Getting started</h2>
+<ol>
+<li>On the Home tab, choose <strong>Takeoff</strong> to open the pane.</li>
+<li>Choose <strong>Open drawing</strong> and pick a DXF or PDF file.</li>
+<li>Under <strong>Scale</strong>, pick a paper scale or calibrate with two points, and choose where it applies (this page, a region, chosen pages or all pages).</li>
+<li>Measure with Length, Area, Count or Symbols, then <strong>Send</strong> to put the quantity in the selected cell as a formula.</li>
+</ol>
+<h2>Measuring</h2>
+<p><strong>Length:</strong> straight line, polyline, arc (3 points), curve (Bézier), spline, freehand. <strong>Area:</strong> polygon, rectangle, rotated rectangle, circle, ellipse, sector, arc segment, freehand. Arcs, circles, ellipses and sectors use exact formulas. <strong>Count:</strong> markers, or posts at a spacing along a path. <strong>Pick</strong> measures an existing vector line or closed shape exactly from the drawing. <strong>Angle</strong> and <strong>Symbols</strong> (find look-alikes of a boxed symbol) are also available.</p>
+<p>In Pan mode, click an item to select it and drag its square handles to adjust it. Right or middle mouse drag pans.</p>
+<h2>Civil and BOQ quantities</h2>
+<p>Open an item's <strong>Details</strong> to set a code, turn a length into an area or volume (× width, × depth), turn an area into a perimeter or volume, mark an opening as a deduction, repeat it ×N, add waste %, and set a rate. Amounts are calculated in Excel when you send a table with the Rate and Amount columns.</p>
+<h2>Choosing where quantities land</h2>
+<p>Under <strong>Send to Excel: where and how</strong>, choose the selected cell or a fixed cell, which way to move after each send, whether to write just the quantity or label + quantity + unit, which table columns to include, and whether a table goes at the destination or on a new Takeoff sheet. Use <strong>Link to selected cell</strong> on an item to tie it to one exact cell of your own BOQ, then <strong>Update linked cells</strong> to refresh them all after a scale change.</p>
+<h2>Common questions</h2>
+<p><strong>My quantities are off.</strong> Presets assume the PDF is printed at the sheet size the scale was drawn for. If the sheet was shrunk, use Calibrate with a known dimension, or use “Check against a known size” after a Distance measurement.</p>
+<p><strong>DWG files.</strong> Save the drawing as ASCII DXF first.</p>
+<p><strong>Scanned PDFs.</strong> These have no vector lines to total, so use the measuring tools and Symbols.</p>
+</body></html>

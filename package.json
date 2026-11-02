@@ -1,0 +1,16 @@
+{
+  "name": "takeoff-excel-addin",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "certs": "npx office-addin-dev-certs install",
+    "vendor": "node scripts/vendor.js",
+    "start": "node server.js",
+    "sideload": "npx office-addin-debugging start manifest.xml desktop --app excel",
+    "build": "node scripts/build.js",
+    "validate": "npx office-addin-manifest validate dist/manifest.xml"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}
